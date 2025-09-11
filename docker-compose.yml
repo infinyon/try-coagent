@@ -1,0 +1,59 @@
+#
+#
+# As a user:
+#   run `docker-compose up` to run the demo
+# if a new version has been release that you wish to try
+#   `docker-compose pull` follwed by
+#   `docker-compose up`
+#
+# If you wish to try a specific version:
+#   `IMAGE_TAG='aversion' docker-compose up`
+#
+services:
+  coagent-core:
+    image: infinyon/coagent-core:${IMAGE_TAG:-latest}
+    ports:
+      - "3000:3000"
+    environment:
+      - AGENT_ADDRESS=http://coagent-agentbuilder:7878
+      - RUST_LOG=${RUST_LOG:-info}
+      - OLLAMA_API_BASE_URL=http://host.docker.internal:11434
+    volumes:
+      - ./coagent_demo_storage:/app/storage
+    pull_policy: if_not_present
+
+  surrealdb:
+    image: surrealdb/surrealdb:v2.3.7
+    ports:
+      - "8000:8000"
+    environment:
+      - RUST_LOG=${RUST_LOG:-info}
+    profiles:
+      - surrealdb
+    entrypoint:
+      - /surreal
+      - start
+      - --user
+      - surreal
+      - --pass
+      - surreal
+
+  init-surrealdb:
+    image: infinyon/coagent-demo-surrealdb-init:latest
+    environment:
+      - DB_ENDPOINT=http://surrealdb:8000
+    profiles:
+      - surrealdb
+    depends_on:
+      surrealdb:
+        condition: service_started
+
+  ollama:
+    image: ollama/ollama
+    volumes:
+      - ollama_storage:/root/.ollama
+    profiles:
+      - local-llm
+    entrypoint: [ "/bin/bash", "-c", "ollama serve & sleep 5 && ollama pull all-minilm && ollama pull qwen3:4b && wait" ]
+volumes:
+  ollama_storage:
