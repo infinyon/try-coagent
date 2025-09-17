@@ -11,7 +11,7 @@
 #
 services:
   coagent-core:
-    image: infinyon/coagent-core:${IMAGE_TAG:-latest}
+    image: infinyon/coagent-core:${IMAGE_TAG:-stable}
     ports:
       - "3000:3000"
     environment:
