@@ -184,15 +184,27 @@ class StructuredRecipeGenerator:
         })
         end_time = time.time()
 
-        # Log the LLM call
+        # Log the LLM call and response
         try:
-            self.client.log_llm_call(
-                run_id=run_id,
-                context_name="recipe_generation",
+            # Log the LLM call (request)
+            self.client.log_llm_call_new(
+                session_id=run_id,
                 prompt=full_prompt,
+                prompt_number=1,
+                turn_number=1,
+                issuer="langchain",
+                system_prompt="You are a professional chef and cooking assistant."
+            )
+
+            # Log the LLM response with token usage
+            self.client.log_llm_response(
+                session_id=run_id,
                 response=result.model_dump_json(),
-                purpose="Generate structured recipes using LangChain and Pydantic",
-                meta=metadata_extractor.metadata
+                prompt_number=1,
+                turn_number=1,
+                input_tokens=metadata_extractor.metadata.get('usage', {}).get('input_tokens'),
+                output_tokens=metadata_extractor.metadata.get('usage', {}).get('output_tokens'),
+                total_tokens=metadata_extractor.metadata.get('usage', {}).get('total_tokens')
             )
         except Exception as e:
             print(f"Warning: Failed to log LLM call: {e}")
@@ -217,12 +229,14 @@ def main():
     try:
         # Log the start of the run
         try:
-            client.log_run_start(
-                run_id=run_id,
-                prompt="Generate structured recipes using LangChain with Ollama"
+            client.log_session_start(
+                session_id=run_id,
+                prompt="Generate structured recipes using LangChain with Ollama",
+                prompt_number=1,
+                turn_number=0
             )
         except Exception as e:
-            print(f"Warning: Failed to log run start: {e}")
+            print(f"Warning: Failed to log session start: {e}")
 
         # Initialize generator
         metadata_extractor = MetadataExtractor()
@@ -270,16 +284,18 @@ def main():
 
         print(f"\n💾 Recipes saved to: {output_file}")
 
-        # Log the end of the run
+        # Log the end of the session
         try:
-            client.log_run_end(
-                run_id=run_id,
+            client.log_session_end(
+                session_id=run_id,
                 response=f"Generated {len(recipe_collection.recipes)} recipes successfully",
-                elapsed_msec=elapsed_time,
-                meta=metadata_extractor.metadata
+                prompt_number=1,
+                turn_number=0,
+                elapsed_time_ms=elapsed_time,
+                meta={"context": metadata_extractor.metadata}
             )
         except Exception as e:
-            print(f"Warning: Failed to log run end: {e}")
+            print(f"Warning: Failed to log session end: {e}")
 
     except Exception as e:
         print(f"❌ Error: {e}")
@@ -290,10 +306,12 @@ def main():
 
         # Log the error if possible
         try:
-            client.log_run_end(
-                run_id=run_id,
+            client.log_session_end(
+                session_id=run_id,
                 response=f"Error: {str(e)}",
-                elapsed_msec=0
+                prompt_number=1,
+                turn_number=0,
+                elapsed_time_ms=0
             )
         except Exception as log_error:
             print(f"Warning: Failed to log error: {log_error}")
