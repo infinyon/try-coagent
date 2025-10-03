@@ -15,12 +15,34 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - AGENT_ADDRESS=http://coagent-agentbuilder:7878
+      - CLICKHOUSE_URL=http://clickhouse:8123
+      - CLICKHOUSE_DATABASE=coagent
+      - CLICKHOUSE_USER=coagent
+      - CLICKHOUSE_PASSWORD=coagent
+      - DATABASE_URL=postgresql://coagent:coagent@postgres:5432/coagent
       - RUST_LOG=${RUST_LOG:-info}
       - OLLAMA_API_BASE_URL=http://host.docker.internal:11434
     volumes:
       - ./coagent_demo_storage:/app/storage
     pull_policy: if_not_present
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:25.6-alpine
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    environment:
+      CLICKHOUSE_USER: "coagent"
+      CLICKHOUSE_PASSWORD: "coagent"
+    volumes:
+      - .volumes/clickhouse/data:/var/lib/clickhouse
+      - ./config/clickhouse/initdb.d:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: [ "CMD", "clickhouse-client", "--query", "SELECT 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
   surrealdb:
     image: surrealdb/surrealdb:v2.3.7
@@ -55,5 +77,6 @@ services:
     profiles:
       - local-llm
     entrypoint: [ "/bin/bash", "-c", "ollama serve & sleep 5 && ollama pull all-minilm && ollama pull qwen3:4b && wait" ]
+
 volumes:
   ollama_storage:
