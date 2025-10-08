@@ -24,6 +24,9 @@ services:
       - OLLAMA_API_BASE_URL=http://host.docker.internal:11434
     volumes:
       - ./coagent_demo_storage:/app/storage
+    depends_on:
+      clickhouse:
+        condition: service_healthy
     pull_policy: if_not_present
 
   clickhouse:
