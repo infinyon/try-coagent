@@ -21,6 +21,15 @@ Quick start guide to try the Coagent AI Agent Framework using Docker.
    docker-compose up
    ```
 
+> [!NOTE]
+> If you already have a CoAgent Demo running, stop it first.
+> Run `docker-compose pull` and then run `docker-compose up`.
+
+> [!TIP]
+> If you want to cleanup storage you can run the following command,
+> be mindful when running it as CoAgent storage will be deleted.
+> `docker-compose down -v --remove-orphans`.
+
 3. **Access the application**
 
    Once the containers are running, open your browser to:
