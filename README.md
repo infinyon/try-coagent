@@ -35,6 +35,16 @@ Quick start guide to try the Coagent AI Agent Framework using Docker.
    Once the containers are running, open your browser to:
    - **Main UI**: http://localhost:3000
 
+## Shutting Down
+
+Once you are done using CoAgent, you can stop services with:
+
+```bash
+docker-compose down
+```
+
+Data will remain stored, so you can restart later with `docker-compose up`.
+
 ## What's Included
 
 The demo starts two main services:
