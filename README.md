@@ -18,7 +18,7 @@ Quick start guide to try the Coagent AI Agent Framework using Docker.
 
 2. **Start the demo**
    ```bash
-   docker-compose up
+   docker-compose up -d
    ```
 
 3. **Access the application**
