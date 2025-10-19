@@ -5,7 +5,7 @@
 #     "langchain",
 #     "langchain-ollama",
 #     "pydantic",
-#     "infinyon-coagent-client",
+#     "coa-dev-coagent",
 # ]
 # ///
 """
@@ -26,7 +26,7 @@ import json
 import time
 import uuid
 from config import default_config
-from infinyon_coagent_client import CoagentClient
+from coa_dev_coagent import CoagentClient
 
 
 class Recipe(BaseModel):
