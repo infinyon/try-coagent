@@ -64,7 +64,7 @@ services:
       - surreal
 
   init-surrealdb:
-    image: infinyon/coagent-demo-surrealdb-init:latest
+    image: coadotdev/coagent-demo-surrealdb-init:latest
     environment:
       - DB_ENDPOINT=http://surrealdb:8000
     profiles:
