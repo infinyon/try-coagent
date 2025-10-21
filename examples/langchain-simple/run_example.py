@@ -13,7 +13,7 @@ Advanced LangChain integration with structured output using Pydantic.
 
 This script demonstrates how to use LangChain with Ollama to generate
 structured recipe data using Pydantic models, using the pip-installed
-infinyon-coagent-client package.
+coa-dev-coagent package.
 """
 
 from langchain_ollama import OllamaLLM

@@ -1,6 +1,6 @@
 # Try Coagent - LangChain Simple Example
 
-This example demonstrates how to use the `infinyon-coagent-client` package (installed via pip) with LangChain and Ollama to generate structured recipe data.
+This example demonstrates how to use the `coa-dev-coagent` package (installed via pip) with LangChain and Ollama to generate structured recipe data.
 
 ## Prerequisites
 
@@ -54,7 +54,7 @@ python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
-pip install langchain langchain-ollama pydantic infinyon-coagent-client
+pip install langchain langchain-ollama pydantic coa-dev-coagent
 
 # Run the example
 python run_example.py
@@ -70,10 +70,10 @@ python run_example.py
 
 ## Key Differences from langchain-simple
 
-This example uses the **pip-installed** `infinyon-coagent-client` package instead of a local editable install:
+This example uses the **pip-installed** `coa-dev-coagent` package instead of a local editable install:
 
 ```python
-from infinyon_coagent_client import CoagentClient
+from coa_dev_coagent import CoagentClient
 ```
 
 Dependencies in the PEP 723 script metadata:
@@ -82,7 +82,7 @@ Dependencies in the PEP 723 script metadata:
 #     "langchain",
 #     "langchain-ollama",
 #     "pydantic",
-#     "infinyon-coagent-client",  # pip-installed package
+#     "coa-dev-coagent",  # pip-installed package
 # ]
 ```
 
