@@ -41,11 +41,10 @@ services:
       - .volumes/clickhouse/data:/var/lib/clickhouse
       - ./config/clickhouse/initdb.d:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: [ "CMD", "clickhouse-client", "--query", "SELECT 1" ]
+      test: [ "CMD", "clickhouse-client", "--user", "coagent", "--password", "coagent", "--database", "coagent", "--query", "SELECT 1" ]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 30s
 
   surrealdb:
     image: surrealdb/surrealdb:v2.3.7
