@@ -102,6 +102,12 @@ docker-compose down
 rm -rf coagent_demo_storage
 docker-compose up
 ```
+
+## Documentation
+
+For detailed information on integrating CoAgent with your Python AI agents:
+- [Event Logging Reference](docs/reference.md) - Complete guide to logging agent events, monitoring performance, and tracking behavior
+
 ## Support
 
 For issues or questions:
