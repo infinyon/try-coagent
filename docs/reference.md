@@ -2,6 +2,28 @@
 
 This guide explains how to use the CoAgent logging system with your AI agents to monitor performance, track behavior, and analyze execution patterns.
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Core Concepts](#core-concepts)
+  - [Sessions and Event Sequencing](#sessions-and-event-sequencing)
+  - [Log Event Types](#log-event-types)
+- [Event Types for Agent Monitoring](#event-types-for-agent-monitoring)
+  - [1. SessionStart - Initialize Agent Run Tracking](#1-sessionstart---initialize-agent-run-tracking)
+  - [2. UserInput - Capture User Prompts and Inputs](#2-userinput---capture-user-prompts-and-inputs)
+  - [3. SessionEnd - Complete Agent Run Tracking](#3-sessionend---complete-agent-run-tracking)
+  - [4. LlmCall - Track LLM Request Details](#4-llmcall---track-llm-request-details)
+  - [5. LlmResponse - Capture LLM Output and Token Usage](#5-llmresponse---capture-llm-output-and-token-usage)
+  - [6. ToolCall - Log Tool/Function Invocations](#6-toolcall---log-toolfunction-invocations)
+  - [7. ToolResponse - Capture Tool Execution Results](#7-toolresponse---capture-tool-execution-results)
+  - [8. Error - Record Agent Failures and Exceptions](#8-error---record-agent-failures-and-exceptions)
+  - [9. Info, Warning, Debug - Structured Logging Events](#9-info-warning-debug---structured-logging-events)
+- [Complete Integration Example](#complete-integration-example)
+- [Metadata Best Practices](#metadata-best-practices)
+- [Analyzing Your Logs](#analyzing-your-logs)
+- [Integration Patterns](#integration-patterns)
+- [Next Steps](#next-steps)
+
 ## Overview
 
 The CoAgent logging system captures events of AI agent runs using structured event logs. The interactions with the CoAgent sandbox, as well as CoAgent python client integration capture log events through the logging system.
@@ -29,15 +51,30 @@ A range of Event types are available for logging. A given workflow does not need
 all event types to capture useful logs for CoAgent. However, the more information that
 is logged the more analysis and monitoring information can be assessed.
 
+### Log Event Types
+
+CoAgent supports the following log event types for comprehensive agent monitoring:
+
+| Event Type | Description |
+|------------|-------------|
+| [`session_start`](#1-sessionstart---initialize-agent-run-tracking) | Marks the beginning of an agent run or interaction session |
+| [`user_input`](#2-userinput---capture-user-prompts-and-inputs) | Captures user prompts or inputs that drive agent behavior, including file uploads |
+| [`session_end`](#3-sessionend---complete-agent-run-tracking) | Marks the completion of an agent run, capturing final outputs and total execution time |
+| [`llm_call`](#4-llmcall---track-llm-request-details) | Records LLM API requests including prompts, system messages, and conversation history |
+| [`llm_response`](#5-llmresponse---capture-llm-output-and-token-usage) | Captures LLM outputs, token usage, and tool calls suggested by the model |
+| [`tool_call`](#6-toolcall---log-toolfunction-invocations) | Logs invocations of external tools, APIs, or functions with their parameters |
+| [`tool_response`](#7-toolresponse---capture-tool-execution-results) | Captures the results returned from tool or function executions |
+| [`error`](#8-error---record-agent-failures-and-exceptions) | Records exceptions, failures, or error conditions during agent execution |
+
 ### 1. SessionStart - Initialize Agent Run Tracking
 
 **When to use**: Log this at the very beginning of your agent's execution to mark the start of a new run.
 
 **What it captures**:
-- Initial prompt or task description
 - Session metadata (configuration, parameters, etc.)
 - Start timestamp
-- Optional Agent "stack", workflow and versioning information
+- Agent "stack", workflow and versioning information
+- Initial task description (high-level overview)
 
 **Python example**:
 ```python
@@ -49,10 +86,14 @@ session_id = f"agent-run-{uuid.uuid4().hex[:8]}"
 
 client.log_session_start(
     session_id=session_id,
-    prompt="Analyze customer feedback and generate insights",
+    prompt="Customer feedback analysis task",
     prompt_number=1,
     turn_number=0,
-    meta={"agent_type": "analytics", "version": "1.2.0"}
+    meta={
+        "agent_type": "analytics",
+        "version": "1.2.0",
+        "workflow": "feedback_analysis"
+    }
 )
 ```
 
@@ -63,7 +104,95 @@ client.log_session_start(
 
 ---
 
-### 2. SessionEnd - Complete Agent Run Tracking
+### 2. UserInput - Capture User Prompts and Inputs
+
+**When to use**: Log this whenever a user provides input to your agent, whether it's a text prompt, file upload, or multi-modal content. Use this instead of SessionStart for capturing detailed user interaction data.
+
+**What it captures**:
+- User prompt or message text
+- Uploaded files and their metadata (filename, size, type)
+- Multi-modal inputs (images, documents, audio)
+- Input source and context
+- Timestamp of user interaction
+
+**Python example**:
+```python
+# Simple text input
+client.log_user_input(
+    session_id=session_id,
+    prompt="Analyze this customer feedback data",
+    prompt_number=1,
+    turn_number=0,
+    meta={"input_source": "web_ui", "user_id": "user_12345"}
+)
+
+# Input with file attachments
+client.log_user_input(
+    session_id=session_id,
+    prompt="Summarize these documents",
+    prompt_number=2,
+    turn_number=0,
+    meta={
+        "input_source": "api",
+        "attachments": [
+            {
+                "filename": "report_q4.pdf",
+                "size_bytes": 245678,
+                "mime_type": "application/pdf",
+                "file_hash": "sha256:abc123..."
+            },
+            {
+                "filename": "data.csv",
+                "size_bytes": 12340,
+                "mime_type": "text/csv",
+                "row_count": 500
+            }
+        ],
+        "user_id": "user_12345"
+    }
+)
+
+# Multi-modal input (image + text)
+client.log_user_input(
+    session_id=session_id,
+    prompt="What's in this image?",
+    prompt_number=3,
+    turn_number=0,
+    meta={
+        "input_source": "mobile_app",
+        "attachments": [
+            {
+                "filename": "photo.jpg",
+                "size_bytes": 1048576,
+                "mime_type": "image/jpeg",
+                "dimensions": "1920x1080",
+                "image_url": "s3://bucket/uploads/photo.jpg"
+            }
+        ],
+        "location": {"lat": 37.7749, "lng": -122.4194}
+    }
+)
+```
+
+**Use cases**:
+- Track what users are asking your agent to do
+- Monitor file upload patterns and types
+- Distinguish between different input sources (web, API, mobile)
+- Correlate user inputs with agent performance
+- Audit data inputs for compliance and security
+- Analyze which types of prompts lead to errors
+- Track multi-modal usage patterns
+
+**Best practices**:
+- Log file metadata (name, size, type) rather than full file contents
+- Use file hashes to verify file integrity without storing duplicates
+- Include user IDs only when appropriate for your privacy requirements
+- For large files, store references (URLs, S3 keys) in metadata rather than the files themselves
+- Tag inputs by source to analyze channel-specific performance
+
+---
+
+### 3. SessionEnd - Complete Agent Run Tracking
 
 **When to use**: Log this when your agent completes its task (successfully or with errors).
 
@@ -99,7 +228,7 @@ client.log_session_end(
 
 ---
 
-### 3. LlmCall - Track LLM Request Details
+### 4. LlmCall - Track LLM Request Details
 
 **When to use**: Log this before making a call to an LLM to capture the request context.
 
@@ -133,7 +262,7 @@ response = llm.generate(prompt)
 
 ---
 
-### 4. LlmResponse - Capture LLM Output and Token Usage
+### 5. LlmResponse - Capture LLM Output and Token Usage
 
 **When to use**: Log this after receiving a response from an LLM to track outputs and resource consumption.
 
@@ -167,7 +296,7 @@ client.log_llm_response(
 
 ---
 
-### 5. ToolCall - Log Tool/Function Invocations
+### 6. ToolCall - Log Tool/Function Invocations
 
 **When to use**: Log this when your agent calls an external tool, API, or function.
 
@@ -184,7 +313,7 @@ client.log_llm_response(
 
 ---
 
-### 6. ToolResponse - Capture Tool Execution Results
+### 7. ToolResponse - Capture Tool Execution Results
 
 Tool Responses are often then folded into history/system prompt information for
 subsequent llm_calls
@@ -204,7 +333,7 @@ subsequent llm_calls
 
 ---
 
-### 7. Error - Record Agent Failures and Exceptions
+### 8. Error - Record Agent Failures and Exceptions
 
 **When to use**: Log this whenever your agent encounters an error or exception.
 
@@ -239,7 +368,7 @@ except Exception as e:
 
 ---
 
-### 8. Info, Warning, Debug - Structured Logging Events
+### 9. Info, Warning, Debug - Structured Logging Events
 
 **When to use**: Use these for general logging at different severity levels throughout your agent's execution.
 
